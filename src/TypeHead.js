@@ -1,16 +1,34 @@
 import React, { useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux';
+import { cacheResult } from './searchSlice';
 
 const TypeHead = () => {
-
-
-    const [searchQuery,setSearchQuery]=useState('')
+    const [searchQuery,setSearchQuery]=useState(''); 
     const[data,setData]=useState([]);
     const [show,setShow]=useState(false);
-
+    const dispatch=useDispatch();
+    const searchCache = useSelector((store)=>store.search);
 
      useEffect(()=>{
+   
+        const timer=setTimeout(() => {
 
-      const timer= setTimeout(()=>{ fetchSearch();},200);
+          if(searchCache[searchQuery]){
+            console.log('if called');
+
+            setData(searchCache[searchQuery]);
+          }
+          else{
+            console.log('else called');
+            fetchSearch();
+          }
+
+
+
+
+        }, 200);
+
+
       return()=>{
         clearInterval(timer);
       }
@@ -22,6 +40,11 @@ const TypeHead = () => {
         const searchData=await fetch("http://suggestqueries.google.com/complete/search?client=firefox&ds=yt&q=+"+searchQuery);
         const json=await searchData.json();
         setData(json[1]);
+        dispatch(
+          cacheResult({
+          [searchQuery]:json[1],
+        })
+      );
         
      }
 
